@@ -20,27 +20,40 @@ wire compare;
 //ram value
 
 //read ddre changes is the enable
-wire [7:0] cur_ram;
+reg [7:0] cur_ram;
 wire [7:0] prev_ram;
-assign cur_ram = read_value;
+wire [7:0] temp;
 
-dffre #(8) ra(.clk(clk),.d(cur_ram),.d(prev_ram),.r(reset),.en(compare));
+
+
+
+dffre #(8) rap(.clk(clk),.d(cur_ram),.q(prev_ram),.r(reset),.en(compare));
+always @(*) begin
+if(valid_pixel) begin
+cur_ram <= read_value;
+end
+
+end
 //need to address gooing down tooo
-assign r =(valid_pixel && y> cur_ram  && y < prev_ram)? 8'b11111111: 8'b0;
-assign g = 0;
-assign b = 0;
+wire prevvp;
+assign r =( valid&& prevvp && valid_pixel &&( (y[9:1]< cur_ram  && y[9:1] > prev_ram) | (y[9:1]> cur_ram  && y[9:1] < prev_ram)))? 8'b11111111: 8'b0;
+assign g =( valid && prevvp && valid_pixel &&( (y[9:1]< cur_ram  && y[9:1] > prev_ram) | (y[9:1]> cur_ram  && y[9:1] < prev_ram)))? 8'b11111111: 8'b0;
+assign b =( valid&& prevvp && valid_pixel &&( (y[9:1]< cur_ram  && y[9:1] > prev_ram) | (y[9:1]> cur_ram  && y[9:1] < prev_ram)))? 8'b11111111: 8'b0;
 
 
+
+
+dffr ihateths(.clk(clk),.d(valid_pixel),.q(prevvp),.r(reset));
 
 
 ////////////////
 //Detect change of read_addr
-reg read_addr;
+reg [7:0] read_addr;
 wire [7:0] prev_addr;
-dffr #(8) tu(.clk(clk),.d(read_addr),.q(prev_addr),.r(reset));
+dffre #(8) tu(.clk(clk),.d(read_addr),.q(prev_addr),.r(1'b0),.en(valid_pixel));
 
 
-assign compare = (read_addr != prev_addr);
+assign compare = ((read_addr != prev_addr)  );
 
 ////////////
 
@@ -50,12 +63,13 @@ assign read_address = read_addr;
 //read adress
 
 always @(*) begin
-    casex(x)
-        11'b000xxxxxxxx: read_addr = {read_index, 7'b0};
-        11'b001xxxxxxxx: read_addr = {read_index, x[7:1]};
-        11'b010xxxxxxxx: read_addr = {read_index, x[7:1]} ;
-        11'b011xxxxxxxx: read_addr = {read_index,7'b0} ;
-        default: read_addr = 1'b0;
+    casex({valid,x})
+        12'b0xxxxxxxxxxx: read_addr <= read_addr;
+        12'b1000xxxxxxxx: read_addr <= {read_index, 7'bx};
+        12'b1001xxxxxxxx: read_addr <= {read_index, x[7:1]};
+        12'b1010xxxxxxxx: read_addr <= {read_index, x[7:1]} ;
+        12'b1011xxxxxxxx: read_addr <= {read_index,7'bx} ;
+        default: read_addr = read_addr;
         endcase
     end
         
