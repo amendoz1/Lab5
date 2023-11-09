@@ -24,13 +24,14 @@ reg [7:0] cur_ram;
 wire [7:0] prev_ram;
 wire [7:0] temp;
 
+wire [8:0] read_value_adj = (read_value>> 1)+ 6'd32;
 
 
 
 dffre #(8) rap(.clk(clk),.d(cur_ram),.q(prev_ram),.r(reset),.en(compare));
 always @(*) begin
 if(valid_pixel) begin
-cur_ram <= read_value;
+cur_ram <= read_value_adj;
 end
 
 end
