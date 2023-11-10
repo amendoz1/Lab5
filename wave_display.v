@@ -51,7 +51,7 @@ dffr ihateths(.clk(clk),.d(valid_pixel),.q(prevvp),.r(reset));
 reg [7:0] read_addr;
 wire [7:0] prev_addr;
 dffre #(8) tu(.clk(clk),.d(read_addr),.q(prev_addr),.r(1'b0),.en(valid_pixel));
-
+// prev_addr and read_addr should be 9 bits
 
 assign compare = ((read_addr != prev_addr)  );
 
@@ -66,8 +66,8 @@ always @(*) begin
     casex({valid,x})
         12'b0xxxxxxxxxxx: read_addr <= read_addr;
         12'b1000xxxxxxxx: read_addr <= {read_index, 7'bx};
-        12'b1001xxxxxxxx: read_addr <= {read_index, x[7:1]};
-        12'b1010xxxxxxxx: read_addr <= {read_index, x[7:1]} ;
+        12'b1001xxxxxxxx: read_addr <= {read_index, x[7:1]}; // should be 9 bits. {read_index, 1'b0, x[7:1]}
+        12'b1010xxxxxxxx: read_addr <= {read_index, x[7:1]} ;  // should be 9 bits. {read_index, 1'b1, x[7:1]}
         12'b1011xxxxxxxx: read_addr <= {read_index,7'bx} ;
         default: read_addr = read_addr;
         endcase
